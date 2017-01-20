@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+"""Check the remaining days for the expiration of a domain's SSL certificate."""
 
 from datetime import datetime
 import argparse
@@ -10,6 +11,7 @@ CA_CERTS = './cacert.pem'
 
 
 def exit_error(errcode, errtext):
+    """Return error code and text"""
     print(errtext)
     exit(errcode)
 
@@ -35,7 +37,7 @@ def pyssl_check_expiration(cert):
         try:
             expire_date = datetime.strptime(cert['notAfter'],
                                             "%b %d %H:%M:%S %Y %Z")
-        except:
+        except ValueError:
             exit_error(1, "Certificate date format unknown.")
 
         expire_in = expire_date - datetime.now()
@@ -46,25 +48,25 @@ def pyssl_check_expiration(cert):
 
 
 def main():
+    """Main function"""
     parser = argparse.ArgumentParser()
     parser.add_argument('host', help='specify an host to connect to')
     parser.add_argument('-p', '--port', help='specify a port to connect to',
                         type=int, default=443)
     args = parser.parse_args()
 
-    global HOST, PORT
-    HOST = args.host
-    PORT = args.port
+    host = args.host
+    port = args.port
 
     # Check the DNS name
     try:
-        socket.getaddrinfo(HOST, PORT)[0][4][0]
-    except socket.gaierror as e:
-        exit_error(1, e)
+        socket.getaddrinfo(host, port)[0][4][0]
+    except socket.gaierror as err:
+        exit_error(1, err)
 
     # Connect to the host and get the certificate
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((HOST, PORT))
+    sock.connect((host, port))
 
     try:
         ssl_sock = ssl.wrap_socket(sock, cert_reqs=ssl.CERT_REQUIRED,
@@ -73,15 +75,15 @@ def main():
                                             "-PSK:RC4-SHA:RC4-MD5"))
 
         cert = ssl_sock.getpeercert()
-        if not pyssl_check_hostname(cert, HOST):
+        if not pyssl_check_hostname(cert, host):
             print("Error: Hostname does not match!")
 
         print(pyssl_check_expiration(cert))
 
         ssl_sock.shutdown(socket.SHUT_RDWR)
 
-    except ssl.SSLError as e:
-        exit_error(1, e)
+    except ssl.SSLError as err:
+        exit_error(1, err)
 
 
 if __name__ == "__main__":
