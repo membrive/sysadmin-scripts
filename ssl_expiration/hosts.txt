@@ -1,0 +1,7 @@
+example1.com
+another.example.com
+
+[Group]
+group.example.com
+test.example.com
+
