@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Fernando Membrive <membrive@gmail.com>
+# Fernando Membrive
 #
 # Checks if the files in a directory, with a certain filename pattern,
 # exceed a given size.
